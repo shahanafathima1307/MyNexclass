@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://jhnstbmdxrdygokldpol.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "mynexclass-mcp",
+      "version": "0.1.0",
+      "title": "myNexClass"
+    },
+    "tools": [
+      {
+        "name": "list_people",
+        "title": "List tutors and students",
+        "description": "List myNexClass members visible to the signed-in user, with their role, subjects and contact details.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "role": {
+              "description": "Filter by role. Defaults to any.",
+              "type": "string",
+              "enum": [
+                "tutor",
+                "student",
+                "any"
+              ]
+            },
+            "search": {
+              "description": "Case-insensitive name filter.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_classes",
+        "title": "List classes",
+        "description": "List the signed-in user's tutoring classes (upcoming or past), with time, time zone, status and meeting link.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by class status. Defaults to any.",
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "completed",
+                "cancelled",
+                "any"
+              ]
+            },
+            "limit": {
+              "description": "Max classes to return (max 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "schedule_class",
+        "title": "Schedule a class",
+        "description": "Create a new tutoring class between a tutor and a student. Times are given in the class time zone.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Class title, e.g. 'Algebra revision'."
+            },
+            "tutor_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Profile id of the tutor (from list_people)."
+            },
+            "student_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Profile id of the student (from list_people)."
+            },
+            "starts_at": {
+              "type": "string",
+              "description": "Class start as an ISO-8601 timestamp, e.g. 2026-08-01T15:00:00Z."
+            },
+            "time_zone": {
+              "description": "IANA time zone, e.g. Europe/London. Defaults to UTC.",
+              "type": "string"
+            },
+            "duration_minutes": {
+              "description": "Defaults to 60.",
+              "type": "integer",
+              "minimum": 15,
+              "maximum": 480
+            },
+            "subject": {
+              "type": "string"
+            },
+            "meeting_url": {
+              "description": "Join link for the class.",
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "tutor_id",
+            "student_id",
+            "starts_at"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_class",
+        "title": "Update a class",
+        "description": "Update an existing class: change its meeting link, time, time zone, notes or status (scheduled/completed/cancelled).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "class_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Id of the class to update (from list_classes)."
+            },
+            "meeting_url": {
+              "description": "New join link.",
+              "type": "string"
+            },
+            "starts_at": {
+              "description": "New start time as ISO-8601.",
+              "type": "string"
+            },
+            "time_zone": {
+              "description": "IANA time zone, e.g. Asia/Kolkata.",
+              "type": "string"
+            },
+            "duration_minutes": {
+              "type": "integer",
+              "minimum": 15,
+              "maximum": 480
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "completed",
+                "cancelled"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "class_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recordings",
+        "title": "List class recordings",
+        "description": "List lesson recordings the signed-in user can access, optionally for one class. Stored files return a temporary playback link.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "class_id": {
+              "description": "Only recordings for this class.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

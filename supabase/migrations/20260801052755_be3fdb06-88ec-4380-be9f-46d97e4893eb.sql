@@ -1,0 +1,1 @@
+CREATE POLICY "Admins can create classes" ON public.classes FOR INSERT TO authenticated WITH CHECK (private.has_role(auth.uid(), 'admin'::app_role));
